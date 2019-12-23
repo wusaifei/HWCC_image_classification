@@ -5,13 +5,15 @@ from collections import OrderedDict
 from model_service.pytorch_model_service import PTServingBaseService
 import torch
 from torchvision import transforms
+
 input_size = 380
 test_transforms = transforms.Compose([
-        transforms.Resize(input_size),
-		transforms.CenterCrop(input_size),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
+    transforms.Resize(input_size),
+    transforms.CenterCrop(input_size),
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+])
+
 
 class garbage_classify_service(PTServingBaseService):
     def __init__(self, model_name, model_path):
@@ -21,16 +23,20 @@ class garbage_classify_service(PTServingBaseService):
         self.model_name = model_name
         # self.model_path = model_path
         # self.signature_key = 'predict_images'
-
         # add the input and output key of your pb model here,
         # these keys are defined when you save a pb file
-        self.input_key_1 = 'input_img'
-        map_location=torch.device('cpu')
+        map_location = torch.device('cpu')
         self.model = torch.load(model_path, map_location=map_location)
         self.model.eval()
+        self.idx_to_cls = {'0': 0, '1': 1, '2': 10, '3': 11, '4': 12, '5': 13, '6': 14, '7': 15, '8': 16, '9': 17,
+                      '10': 18, '11': 19, '12': 2, '13': 20, '14': 21, '15': 22, '16': 23, '17': 24, '18': 25,
+                      '19': 26, '20': 27, '21': 28, '22': 29, '23': 3, '24': 30, '25': 31, '26': 32, '27': 33,
+                      '28': 34, '29': 35, '30': 36, '31': 37, '32': 38, '33': 39, '34': 4, '35': 40, '36': 41,
+                      '37': 42, '38': 43, '39': 44, '40': 45, '41': 46, '42': 47, '43': 48, '44': 49, '45': 5,
+                      '46': 50, '47': 51, '48': 52, '49': 53, '50': 6, '51': 7, '52': 8, '53': 9}
         self.label_id_name_dict = \
             {
-		"0": "工艺品/仿唐三彩",
+                "0": "工艺品/仿唐三彩",
                 "1": "工艺品/仿宋木叶盏",
                 "2": "工艺品/布贴绣",
                 "3": "工艺品/景泰蓝",
@@ -100,18 +106,24 @@ class garbage_classify_service(PTServingBaseService):
         model inference function
         Here are a inference example of resnet, if you use another model, please modify this function
         """
-        img = data[self.input_key_1]
+        img = data["input_img"]
         img = img[np.newaxis, :, :, :]  # the input tensor shape of resnet is [?, 224, 224, 3]
         # pred_score = self.sess.run([self.output_score], feed_dict={self.input_images: img})
-        
+
         pred_score = self.model(img)
         pred_score = pred_score.detach().numpy()
         if pred_score is not None:
             pred_label = np.argmax(pred_score, axis=1)[0]
+            pred_label = self.idx_to_cls[str(int(pred_label))]
             result = {'result': self.label_id_name_dict[str(pred_label)]}
+
         else:
             result = {'result': 'predict score is None'}
+
+
         return result
+
 
     def _postprocess(self, data):
         return data
+

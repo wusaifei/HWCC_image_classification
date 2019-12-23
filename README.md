@@ -1,4 +1,4 @@
-将代码中'torch.save(net.state_dict(), '%s/net_%03d.pth' % (args.outf, epoch + 1))' 改为'torch.save(net.module(), '%s/net_%03d.pth' % (args.outf, epoch + 1))'即可解决 报错' 'collections.OrderedDict' object has no attribute 'eval' '。源文件已经修改
+将代码中`torch.save(net.state_dict(), '%s/net_%03d.pth' % (args.outf, epoch + 1))` 改为`torch.save(net.module, '%s/net_%03d.pth' % (args.outf, epoch + 1))`即可解决 报错`'collections.OrderedDict' object has no attribute 'eval'`。源文件已经修改
 # “华为云杯”2019人工智能创新应用大赛
 比赛链接点击这里：[“华为云杯”2019人工智能创新应用大赛](https://competition.huaweicloud.com/information/1000021526/circumstances)
 
